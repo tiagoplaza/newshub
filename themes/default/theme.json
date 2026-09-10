@@ -1,0 +1,21 @@
+{
+  "slug": "default",
+  "name": "Tema Padrão",
+  "version": "1.0.0",
+  "author": "CMS Core",
+  "description": "Layout padrão do CMS — tipografia editorial, cabeçalho e rodapé com menus dinâmicos.",
+  "layouts": {
+    "site": "layouts/site.tsx",
+    "post": "layouts/post.tsx",
+    "page": "layouts/page.tsx",
+    "home": "layouts/home.tsx",
+    "category": "layouts/category.tsx",
+    "tag": "layouts/tag.tsx",
+    "search": "layouts/search.tsx"
+  },
+  "menuSlots": ["HEADER", "FOOTER"],
+  "colors": {
+    "primary": "#111827",
+    "background": "#ffffff"
+  }
+}
