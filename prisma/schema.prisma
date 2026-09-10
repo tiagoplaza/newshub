@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id           String   @id @db.VarChar(191)
+  id           String   @id @default(uuid()) @db.VarChar(191)
   name         String   @db.VarChar(191)
   email        String   @unique @db.VarChar(191)
   passwordHash String   @db.VarChar(191)
@@ -17,7 +17,7 @@ model User {
   active       Boolean  @default(true)
   roleId       String   @db.VarChar(191)
   createdAt    DateTime @default(now()) @db.DateTime(3)
-  updatedAt    DateTime @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @db.DateTime(3)
 
   role Role @relation(fields: [roleId], references: [id], onUpdate: Cascade)
 
@@ -31,7 +31,7 @@ model User {
 }
 
 model Session {
-  id        String   @id @db.VarChar(191)
+  id        String   @id @default(uuid()) @db.VarChar(191)
   userId    String   @db.VarChar(191)
   token     String   @unique @db.VarChar(191)
   expiresAt DateTime @db.DateTime(3)
@@ -43,20 +43,20 @@ model Session {
 }
 
 model Role {
-  id          String   @id @db.VarChar(191)
+  id          String   @id @default(uuid()) @db.VarChar(191)
   name        String   @unique @db.VarChar(191)
   slug        String   @unique @db.VarChar(191)
   description String?  @db.VarChar(191)
   isSystem    Boolean  @default(false)
   createdAt   DateTime @default(now()) @db.DateTime(3)
-  updatedAt   DateTime @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
 
   users       User[]
   permissions RolePermission[]
 }
 
 model Permission {
-  id          String  @id @db.VarChar(191)
+  id          String  @id @default(uuid()) @db.VarChar(191)
   key         String  @unique @db.VarChar(191)
   description String? @db.VarChar(191)
 
@@ -75,7 +75,7 @@ model RolePermission {
 }
 
 model AuditLog {
-  id        String   @id @db.VarChar(191)
+  id        String   @id @default(uuid()) @db.VarChar(191)
   userId    String?  @db.VarChar(191)
   action    String   @db.VarChar(191)
   entity    String   @db.VarChar(191)
@@ -99,7 +99,7 @@ enum ContentStatus {
 }
 
 model Post {
-  id            String        @id @db.VarChar(191)
+  id            String        @id @default(uuid()) @db.VarChar(191)
   title         String        @db.VarChar(191)
   slug          String        @unique @db.VarChar(191)
   excerpt       String?       @db.Text
@@ -110,7 +110,7 @@ model Post {
   publishedAt   DateTime?     @db.DateTime(3)
   scheduledAt   DateTime?     @db.DateTime(3)
   createdAt     DateTime      @default(now()) @db.DateTime(3)
-  updatedAt     DateTime      @db.DateTime(3)
+  updatedAt     DateTime      @updatedAt @db.DateTime(3)
 
   author User @relation(fields: [authorId], references: [id], onUpdate: Cascade)
 
@@ -125,7 +125,7 @@ model Post {
 }
 
 model PostRevision {
-  id        String   @id @db.VarChar(191)
+  id        String   @id @default(uuid()) @db.VarChar(191)
   postId    String   @db.VarChar(191)
   title     String   @db.VarChar(191)
   content   String   @db.Text
@@ -138,7 +138,7 @@ model PostRevision {
 }
 
 model Page {
-  id        String        @id @db.VarChar(191)
+  id        String        @id @default(uuid()) @db.VarChar(191)
   title     String        @db.VarChar(191)
   slug      String        @unique @db.VarChar(191)
   content   String        @db.MediumText
@@ -148,7 +148,7 @@ model Page {
   order     Int           @default(0)
   authorId  String        @db.VarChar(191)
   createdAt DateTime      @default(now()) @db.DateTime(3)
-  updatedAt DateTime      @db.DateTime(3)
+  updatedAt DateTime      @updatedAt @db.DateTime(3)
 
   author User @relation(fields: [authorId], references: [id], onUpdate: Cascade)
 
@@ -163,7 +163,7 @@ model Page {
 }
 
 model Comment {
-  id          String   @id @db.VarChar(191)
+  id          String   @id @default(uuid()) @db.VarChar(191)
   postId      String   @db.VarChar(191)
   authorName  String   @db.VarChar(191)
   authorEmail String   @db.VarChar(191)
@@ -182,13 +182,13 @@ model Comment {
 }
 
 model Category {
-  id          String   @id @db.VarChar(191)
+  id          String   @id @default(uuid()) @db.VarChar(191)
   name        String   @db.VarChar(191)
   slug        String   @unique @db.VarChar(191)
   description String?  @db.VarChar(191)
   parentId    String?  @db.VarChar(191)
   createdAt   DateTime @default(now()) @db.DateTime(3)
-  updatedAt   DateTime @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
 
   parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   children Category[] @relation("CategoryParent")
@@ -210,7 +210,7 @@ model CategoryOnPost {
 }
 
 model Tag {
-  id        String   @id @db.VarChar(191)
+  id        String   @id @default(uuid()) @db.VarChar(191)
   name      String   @db.VarChar(191)
   slug      String   @unique @db.VarChar(191)
   createdAt DateTime @default(now()) @db.DateTime(3)
@@ -230,18 +230,18 @@ model TagOnPost {
 }
 
 model Menu {
-  id        String   @id @db.VarChar(191)
+  id        String   @id @default(uuid()) @db.VarChar(191)
   name      String   @db.VarChar(191)
   slug      String   @unique @db.VarChar(191)
   location  String?  @db.VarChar(191)
   createdAt DateTime @default(now()) @db.DateTime(3)
-  updatedAt DateTime @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
 
   items MenuItem[]
 }
 
 model MenuItem {
-  id           String   @id @db.VarChar(191)
+  id           String   @id @default(uuid()) @db.VarChar(191)
   menuId       String   @db.VarChar(191)
   label        String   @db.VarChar(191)
   url          String?  @db.VarChar(191)
@@ -251,7 +251,7 @@ model MenuItem {
   parentId     String?  @db.VarChar(191)
   openInNewTab Boolean  @default(false)
   createdAt    DateTime @default(now()) @db.DateTime(3)
-  updatedAt    DateTime @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @db.DateTime(3)
 
   menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
@@ -263,7 +263,7 @@ model MenuItem {
 }
 
 model SeoMeta {
-  id              String   @id @db.VarChar(191)
+  id              String   @id @default(uuid()) @db.VarChar(191)
   metaTitle       String?  @db.VarChar(191)
   metaDescription String?  @db.VarChar(191)
   canonicalUrl    String?  @db.VarChar(191)
@@ -277,7 +277,7 @@ model SeoMeta {
   structuredData  Json?
   postId          String?  @unique @db.VarChar(191)
   pageId          String?  @unique @db.VarChar(191)
-  updatedAt       DateTime @db.DateTime(3)
+  updatedAt       DateTime @updatedAt @db.DateTime(3)
 
   post Post? @relation("PostSeo", fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   page Page? @relation("PageSeo", fields: [pageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -295,7 +295,7 @@ model SeoSettings {
 }
 
 model Media {
-  id         String   @id @db.VarChar(191)
+  id         String   @id @default(uuid()) @db.VarChar(191)
   url        String   @db.VarChar(191)
   filename   String   @db.VarChar(191)
   mimeType   String   @db.VarChar(191)
@@ -310,7 +310,7 @@ model Media {
 }
 
 model Plugin {
-  id          String   @id @db.VarChar(191)
+  id          String   @id @default(uuid()) @db.VarChar(191)
   slug        String   @unique @db.VarChar(191)
   name        String   @db.VarChar(191)
   version     String   @db.VarChar(191)
@@ -319,11 +319,11 @@ model Plugin {
   active      Boolean  @default(false)
   settings    Json?
   installedAt DateTime @default(now()) @db.DateTime(3)
-  updatedAt   DateTime @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
 }
 
 model Template {
-  id          String   @id @db.VarChar(191)
+  id          String   @id @default(uuid()) @db.VarChar(191)
   slug        String   @unique @db.VarChar(191)
   name        String   @db.VarChar(191)
   version     String   @db.VarChar(191)
@@ -331,7 +331,7 @@ model Template {
   active      Boolean  @default(false)
   settings    Json?
   installedAt DateTime @default(now()) @db.DateTime(3)
-  updatedAt   DateTime @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
 }
 
 model SiteSetting {
