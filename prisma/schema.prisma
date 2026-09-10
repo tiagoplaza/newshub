@@ -1,0 +1,340 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @db.VarChar(191)
+  name         String   @db.VarChar(191)
+  email        String   @unique @db.VarChar(191)
+  passwordHash String   @db.VarChar(191)
+  avatarUrl    String?  @db.VarChar(191)
+  bio          String?  @db.VarChar(191)
+  active       Boolean  @default(true)
+  roleId       String   @db.VarChar(191)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  updatedAt    DateTime @db.DateTime(3)
+
+  role Role @relation(fields: [roleId], references: [id], onUpdate: Cascade)
+
+  auditLogs AuditLog[]
+  media     Media[]
+  pages     Page[]
+  posts     Post[]
+  sessions  Session[]
+
+  @@index([roleId])
+}
+
+model Session {
+  id        String   @id @db.VarChar(191)
+  userId    String   @db.VarChar(191)
+  token     String   @unique @db.VarChar(191)
+  expiresAt DateTime @db.DateTime(3)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+}
+
+model Role {
+  id          String   @id @db.VarChar(191)
+  name        String   @unique @db.VarChar(191)
+  slug        String   @unique @db.VarChar(191)
+  description String?  @db.VarChar(191)
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @db.DateTime(3)
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String  @id @db.VarChar(191)
+  key         String  @unique @db.VarChar(191)
+  description String? @db.VarChar(191)
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String @db.VarChar(191)
+  permissionId String @db.VarChar(191)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model AuditLog {
+  id        String   @id @db.VarChar(191)
+  userId    String?  @db.VarChar(191)
+  action    String   @db.VarChar(191)
+  entity    String   @db.VarChar(191)
+  entityId  String?  @db.VarChar(191)
+  metadata  Json?
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([entity, entityId])
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+  TRASHED
+}
+
+model Post {
+  id            String        @id @db.VarChar(191)
+  title         String        @db.VarChar(191)
+  slug          String        @unique @db.VarChar(191)
+  excerpt       String?       @db.Text
+  content       String        @db.MediumText
+  status        ContentStatus @default(DRAFT)
+  featuredImage String?       @db.Text
+  authorId      String        @db.VarChar(191)
+  publishedAt   DateTime?     @db.DateTime(3)
+  scheduledAt   DateTime?     @db.DateTime(3)
+  createdAt     DateTime      @default(now()) @db.DateTime(3)
+  updatedAt     DateTime      @db.DateTime(3)
+
+  author User @relation(fields: [authorId], references: [id], onUpdate: Cascade)
+
+  categories CategoryOnPost[]
+  tags       TagOnPost[]
+  comments   Comment[]
+  revisions  PostRevision[]
+  seo        SeoMeta?         @relation("PostSeo")
+
+  @@index([status])
+  @@index([authorId])
+}
+
+model PostRevision {
+  id        String   @id @db.VarChar(191)
+  postId    String   @db.VarChar(191)
+  title     String   @db.VarChar(191)
+  content   String   @db.Text
+  editedBy  String   @db.VarChar(191)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([postId])
+}
+
+model Page {
+  id        String        @id @db.VarChar(191)
+  title     String        @db.VarChar(191)
+  slug      String        @unique @db.VarChar(191)
+  content   String        @db.MediumText
+  status    ContentStatus @default(DRAFT)
+  template  String        @default("default") @db.VarChar(191)
+  parentId  String?       @db.VarChar(191)
+  order     Int           @default(0)
+  authorId  String        @db.VarChar(191)
+  createdAt DateTime      @default(now()) @db.DateTime(3)
+  updatedAt DateTime      @db.DateTime(3)
+
+  author User @relation(fields: [authorId], references: [id], onUpdate: Cascade)
+
+  parent   Page?  @relation("PageParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  children Page[] @relation("PageParent")
+
+  seo SeoMeta? @relation("PageSeo")
+
+  @@index([parentId])
+  @@index([status])
+  @@index([authorId])
+}
+
+model Comment {
+  id          String   @id @db.VarChar(191)
+  postId      String   @db.VarChar(191)
+  authorName  String   @db.VarChar(191)
+  authorEmail String   @db.VarChar(191)
+  content     String   @db.VarChar(191)
+  approved    Boolean  @default(false)
+  parentId    String?  @db.VarChar(191)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  parent  Comment?  @relation("CommentParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  replies Comment[] @relation("CommentParent")
+
+  @@index([postId])
+  @@index([parentId])
+}
+
+model Category {
+  id          String   @id @db.VarChar(191)
+  name        String   @db.VarChar(191)
+  slug        String   @unique @db.VarChar(191)
+  description String?  @db.VarChar(191)
+  parentId    String?  @db.VarChar(191)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @db.DateTime(3)
+
+  parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  children Category[] @relation("CategoryParent")
+
+  posts CategoryOnPost[]
+
+  @@index([parentId])
+}
+
+model CategoryOnPost {
+  postId     String @db.VarChar(191)
+  categoryId String @db.VarChar(191)
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([postId, categoryId])
+  @@index([categoryId])
+}
+
+model Tag {
+  id        String   @id @db.VarChar(191)
+  name      String   @db.VarChar(191)
+  slug      String   @unique @db.VarChar(191)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  posts TagOnPost[]
+}
+
+model TagOnPost {
+  postId String @db.VarChar(191)
+  tagId  String @db.VarChar(191)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model Menu {
+  id        String   @id @db.VarChar(191)
+  name      String   @db.VarChar(191)
+  slug      String   @unique @db.VarChar(191)
+  location  String?  @db.VarChar(191)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @db.DateTime(3)
+
+  items MenuItem[]
+}
+
+model MenuItem {
+  id           String   @id @db.VarChar(191)
+  menuId       String   @db.VarChar(191)
+  label        String   @db.VarChar(191)
+  url          String?  @db.VarChar(191)
+  pageId       String?  @db.VarChar(191)
+  postId       String?  @db.VarChar(191)
+  order        Int      @default(0)
+  parentId     String?  @db.VarChar(191)
+  openInNewTab Boolean  @default(false)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  updatedAt    DateTime @db.DateTime(3)
+
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  parent   MenuItem?  @relation("MenuItemParent", fields: [parentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  children MenuItem[] @relation("MenuItemParent")
+
+  @@index([menuId])
+  @@index([parentId])
+}
+
+model SeoMeta {
+  id              String   @id @db.VarChar(191)
+  metaTitle       String?  @db.VarChar(191)
+  metaDescription String?  @db.VarChar(191)
+  canonicalUrl    String?  @db.VarChar(191)
+  ogTitle         String?  @db.VarChar(191)
+  ogDescription   String?  @db.VarChar(191)
+  ogImage         String?  @db.VarChar(191)
+  twitterCard     String?  @default("summary_large_image") @db.VarChar(191)
+  noIndex         Boolean  @default(false)
+  noFollow        Boolean  @default(false)
+  focusKeyword    String?  @db.VarChar(191)
+  structuredData  Json?
+  postId          String?  @unique @db.VarChar(191)
+  pageId          String?  @unique @db.VarChar(191)
+  updatedAt       DateTime @db.DateTime(3)
+
+  post Post? @relation("PostSeo", fields: [postId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  page Page? @relation("PageSeo", fields: [pageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model SeoSettings {
+  id                 String  @id @default("global") @db.VarChar(191)
+  siteName           String  @db.VarChar(191)
+  siteDescription    String? @db.VarChar(191)
+  defaultOgImage     String? @db.VarChar(191)
+  robotsTxt          String? @db.VarChar(191)
+  sitemapEnabled     Boolean @default(true)
+  googleVerification String? @db.VarChar(191)
+  bingVerification   String? @db.VarChar(191)
+}
+
+model Media {
+  id         String   @id @db.VarChar(191)
+  url        String   @db.VarChar(191)
+  filename   String   @db.VarChar(191)
+  mimeType   String   @db.VarChar(191)
+  size       Int
+  altText    String?  @db.VarChar(191)
+  uploadedBy String   @db.VarChar(191)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+
+  uploader User @relation(fields: [uploadedBy], references: [id])
+
+  @@index([uploadedBy])
+}
+
+model Plugin {
+  id          String   @id @db.VarChar(191)
+  slug        String   @unique @db.VarChar(191)
+  name        String   @db.VarChar(191)
+  version     String   @db.VarChar(191)
+  description String?  @db.VarChar(191)
+  author      String?  @db.VarChar(191)
+  active      Boolean  @default(false)
+  settings    Json?
+  installedAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @db.DateTime(3)
+}
+
+model Template {
+  id          String   @id @db.VarChar(191)
+  slug        String   @unique @db.VarChar(191)
+  name        String   @db.VarChar(191)
+  version     String   @db.VarChar(191)
+  description String?  @db.VarChar(191)
+  active      Boolean  @default(false)
+  settings    Json?
+  installedAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @db.DateTime(3)
+}
+
+model SiteSetting {
+  key   String @id @db.VarChar(191)
+  value String @db.VarChar(191)
+}
