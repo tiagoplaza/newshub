@@ -5,7 +5,7 @@ import type { ThemeLayoutProps } from "@/lib/plugins/themes";
 import { getHomeContent } from "../data";
 export default async function HomeLayout({ children }: ThemeLayoutProps) { 
     const contents = await getHomeContent();
-    console.log("contents", contents)
+    
     if (!contents || !contents.length) return <main>Nenhum post publicado ainda.</main>;
     return (
         <section>

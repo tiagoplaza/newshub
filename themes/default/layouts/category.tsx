@@ -5,10 +5,8 @@ import type { ThemeLayoutProps } from "@/lib/plugins/themes";
 import { getPostsCategoryContent } from "../data";
 export default async function CategoryLayout({params}: ThemeLayoutProps) {
     const { slug } = (await params) ?? {};
-    console.log("SLUG: ", slug)
     const contents = await getPostsCategoryContent(slug); 
 
-    console.log("contents: ", contents)
     if (!contents) return <main>Notícia não encontrada.</main>;
     return (
         <section>

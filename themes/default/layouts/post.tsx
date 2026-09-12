@@ -5,10 +5,8 @@ import { getPostContent } from "../data";
 
 export default async function PostLayout({params}: ThemeLayoutProps) {
     const { slug } = (await params) ?? {};
-    console.log("SLUG: ", slug)
     const contents = await getPostContent(slug); 
 
-    console.log("contents: ", contents)
     if (!contents) return <main>Notícia não encontrada.</main>;
     return (
         <article>
