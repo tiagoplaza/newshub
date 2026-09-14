@@ -4,6 +4,12 @@ import type { ThemeLayoutProps } from "@/lib/plugins/themes";
 import { getPostContent } from "../data";
 import SocialShare from "../../../plugins/social-share/components/SocialShare";
 
+type Tag = {
+    id:   string
+    slug: string;
+    name: string;
+}
+
 export default async function PostLayout({params}: ThemeLayoutProps) {
     const { slug } = (await params) ?? {};
     const contents = await getPostContent(slug); 
@@ -79,12 +85,12 @@ export default async function PostLayout({params}: ThemeLayoutProps) {
                         <div className="py-5 gap-3 flex items-center flex-wrap">
                         {
                             contents.tags &&
-                            (contents.tags ?? []).map(tag => (
-                            <Link 
-                            key={`tag-${tag.id}`}
-                            className="px-5 py-2 text-xs hover:bg-primary hover:text-primary-foreground font-semibold text-center uppercase"
-                            href={`/tag/${tag.slug}`}
-                            >{tag.name}</Link>
+                            (contents.tags ?? []).map((tag: Tag) => (
+                                <Link 
+                                    key={`tag-${tag.id}`}
+                                    className="px-5 py-2 text-xs hover:bg-primary hover:text-primary-foreground font-semibold text-center uppercase"
+                                    href={`/tag/${tag.slug}`}
+                                >{tag.name}</Link>
                             ))
                         }
                         </div>

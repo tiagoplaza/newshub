@@ -1,31 +1,12 @@
 import { prisma } from "@/lib/prisma";
 
-type HomeContentType =
-  | "POST"
-  | "NEWS"
-  | "VIDEO"
-  | "EVENT";
-
-type HomeContent = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  content: string | null;
-  imageUrl: string | null;
-  publishedAt: Date;
-  categorySlug: string;
-  categoryName: string;
-  sourceName: string;
-  sourceUrl: string | null;
-  url: string;
-  type: HomeContentType;
-  authorName: string | null;
-  tag?: {
-    name: string | null;
-    slug: string | null;
-  }
-}
+import type { 
+  HomeContent, 
+  PaginatedHomeContent, 
+  PostContent, 
+  RelatedArticle, 
+  SearchPostsOptions 
+} from "./types";
 
 type HomeContentPost = {
   id: string;
@@ -69,7 +50,7 @@ export async function getPosts(
     include: postInclude,
     orderBy: { publishedAt: "desc" },
   });
-  return posts;
+  return toHomeContents(posts);
 }
 
 export async function getSlugPosts(
@@ -133,6 +114,47 @@ export async function getPostsCategory(
     posts: toHomeContents(posts),
     pagination: createPagination(page, limit, total),
   };
+}
+
+export async function getPostsTag(
+  slug?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<PaginatedHomeContent> {
+  const tag = await prisma.tag.findUnique({
+    where: { slug },
+  });
+  const where = createPublishedWhere(
+    slug
+      ? { tags: { some: { tag: { slug } } } }
+      : undefined
+  );
+  const { posts, total } = await getPaginatedPosts(
+    where,
+    page,
+    limit
+  );
+  const articles = toHomeContents(posts).map((article) => ({
+    ...article,
+    tag: {
+      name: tag?.name ?? null,
+      slug: tag?.slug ?? null,
+    },
+  }));
+  return {
+    posts: articles,
+    pagination: createPagination(page, limit, total),
+  };
+}
+
+export async function getCategoryPosts( limit?: number ): Promise<HomeContent[]> {
+  const posts = await prisma.post.findMany({
+    where: { status: "PUBLISHED" },
+    include: postInclude,
+    orderBy: { publishedAt: "desc" },
+    take: limit,
+  });
+  return toHomeContents(posts);
 }
 
 function getCategory(post: HomeContentPost) {

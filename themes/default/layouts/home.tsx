@@ -20,7 +20,7 @@ export default async function HomeLayout({ children }: ThemeLayoutProps) {
                     className="relative aspect-video overflow-hidden rounded-lg lg:w-80"
                     >
                     <Image
-                        src={article.featuredImage || "/placeholder.jpg"}
+                        src={article.imageUrl || "/placeholder.jpg"}
                         alt={article.title}
                         fill
                         unoptimized
