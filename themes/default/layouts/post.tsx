@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ThemeLayoutProps } from "@/lib/plugins/themes";
 import { getPostContent } from "../data";
+import SocialShare from "../../../plugins/social-share/components/SocialShare";
 
 export default async function PostLayout({params}: ThemeLayoutProps) {
     const { slug } = (await params) ?? {};
@@ -86,6 +87,15 @@ export default async function PostLayout({params}: ThemeLayoutProps) {
                             >{tag.name}</Link>
                             ))
                         }
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="mt-6 border-t border-slate-200 pt-6">
+                            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                                Compartilhar
+                            </div>
+                            <SocialShare title={contents.title} url={`${process.env.SITE_URL}/noticia/${contents.slug}`} />
                         </div>
                     </div>
                 </>

@@ -23,6 +23,8 @@ export interface PluginModule {
 // descrição) direto do módulo de cada plugin em vez de duplicá-los aqui.
 const AVAILABLE_PLUGINS: Record<string, () => Promise<{ default: PluginModule }>> = {
   "adcash": () => import("../../../plugins/adcash"),
+  "seo-analytics": () => import("../../../plugins/seo-analytics"),
+  "social-share": () => import("../../../plugins/social-share"),
 };
 
 export interface PluginListEntry {
